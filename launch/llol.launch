@@ -20,4 +20,6 @@
         <param name="rigid" type="bool" value="$(arg rigid)"/>
         <param name="odom_frame" type="string" value="$(arg odom_frame)"/>
     </node>
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="body_os" args="0 0 0 3.14159 0 0 body os_sensor" />
 </launch>

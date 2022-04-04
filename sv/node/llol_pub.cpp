@@ -137,26 +137,16 @@ void OdomNode::Publish(const std_msgs::Header& header) {
   if (pub_pano_image.getNumSubscribers() > 0 || 
       pub_pano_viz_image.getNumSubscribers() > 0) {
     if (T_odom_pano_.has_value()) {
-      cinfo_msg->header.stamp = header.stamp;
-      cinfo_msg->header.frame_id = completed_pano_frame_;
+      cinfo_msg->header = pano_header;
       cinfo_msg->width = pano_.size().width;
       cinfo_msg->height = pano_.size().height;
       Eigen::Map<RowMat34d> P_map(&cinfo_msg->P[0]);
       P_map = T_odom_pano_->matrix3x4();
       cinfo_msg->R[0] = DepthPixel::kScale;
 
-      // Publish transform
-      // This is one pano stamp older, so different frame from pano_frame_
-      TransformStamped tf_o_pi;
-      tf_o_pi.header.frame_id = odom_frame_;
-      tf_o_pi.header.stamp = header.stamp;
-      tf_o_pi.child_frame_id = completed_pano_frame_;
-      SE3dToMsg(*T_odom_pano_, tf_o_pi.transform);
-      tf_broadcaster.sendTransform(tf_o_pi);
-
       if (pub_pano_image.getNumSubscribers() > 0) {
         image_msg =
-            cv_bridge::CvImage(cinfo_msg->header, "16UC2", pano_.dbuf2).toImageMsg();
+            cv_bridge::CvImage(pano_header, "16UC2", pano_.dbuf2).toImageMsg();
         pub_pano_image.publish(image_msg, cinfo_msg);
       }
       if (pub_pano_viz_image.getNumSubscribers() > 0) {
@@ -165,7 +155,7 @@ void OdomNode::Publish(const std_msgs::Header& header) {
         cv::split(pano_.dbuf2, channel);
         
         image_msg =
-            cv_bridge::CvImage(cinfo_msg->header, "bgr8", 
+            cv_bridge::CvImage(pano_header, "bgr8", 
                 ApplyCmap(channel[0], 1.0 / 65536, cv::COLORMAP_JET)).toImageMsg();
         pub_pano_viz_image.publish(image_msg, cinfo_msg);
       }
@@ -181,6 +171,14 @@ void OdomNode::Publish(const std_msgs::Header& header) {
   pose.header.frame_id = odom_frame_;
   SE3dToMsg(traj_.TfOdomLidar(), pose.pose);
   pub_pose.publish(pose);
+
+  // Publish current pose on tf too
+  TransformStamped tf_pose;
+  tf_pose.header.frame_id = odom_frame_;
+  tf_pose.header.stamp = header.stamp;
+  tf_pose.child_frame_id = body_frame_;
+  SE3dToMsg(traj_.TfOdomLidar(), tf_pose.transform);
+  tf_broadcaster.sendTransform(tf_pose);
 
   if (pub_pose_cov.getNumSubscribers() > 0) {
     PoseWithCovarianceStamped pose_cov;
