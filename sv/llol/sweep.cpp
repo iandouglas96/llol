@@ -23,7 +23,7 @@ int LidarSweep::Add(const LidarScan& scan) {
   return cv::countNonZero(ExtractRange());
 }
 
-void LidarSweep::Interp(const Trajectory& traj, int gsize) {
+void LidarSweep::Interp(const Trajectory& traj, int gsize, bool motion_comp) {
   const int num_cells = traj.size() - 1;
   const int cell_width = cols() / num_cells;
   const auto grid_end = curr.end / cell_width;
@@ -35,10 +35,9 @@ void LidarSweep::Interp(const Trajectory& traj, int gsize) {
           // Note that the starting point of traj is where curr
           // ends, so we need to offset by curr.end to find the
           // corresponding traj segment
-
           const int tc = WrapCols(gc - grid_end, num_cells);
-          const auto& st0 = traj.At(tc);
-          const auto& st1 = traj.At(tc + 1);
+          const auto& st0 = motion_comp ? traj.At(tc) : traj.At(0);
+          const auto& st1 = motion_comp ? traj.At(tc + 1) : traj.At(0);
 
           const auto dr = (st0.rot.inverse() * st1.rot).log();
           const auto dp = (st1.pos - st0.pos).eval();

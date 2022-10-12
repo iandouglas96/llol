@@ -6,7 +6,10 @@
     <arg name="log" default="0"/>
     <arg name="vis" default="false"/>
     <arg name="rigid" default="true"/>
+    <arg name="motion_comp" default="true"/>
     <arg name="odom_frame" default="odom"/>
+    <arg name="body_frame" default="body"/>
+    <arg name="pano_frame" default="pano"/>
 
     <node pkg="llol" type="sv_node_llol" name="llol_odom" output="screen" ns="os_node">
         <remap from="~imu" to="imu"/>
@@ -18,6 +21,9 @@
         <param name="log" type="int" value="$(arg log)"/>
         <param name="vis" type="bool" value="$(arg vis)"/>
         <param name="rigid" type="bool" value="$(arg rigid)"/>
+        <param name="motion_comp" type="bool" value="$(arg motion_comp)"/>
         <param name="odom_frame" type="string" value="$(arg odom_frame)"/>
+        <param name="body_frame" type="string" value="$(arg body_frame)"/>
+        <param name="pano_frame" type="string" value="$(arg pano_frame)"/>
     </node>
 </launch>

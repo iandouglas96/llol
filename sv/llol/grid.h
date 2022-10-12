@@ -70,7 +70,7 @@ struct SweepGrid final : public ScanBase {
   int Px2Ind(const cv::Point& px) const { return px.y * cols() + px.x; }
 
   /// @brief Interpolate poses of each col (cell)
-  void Interp(const Trajectory& traj);
+  void Interp(const Trajectory& traj, bool motion_comp = true);
 
   int NumCandidates() const;
 

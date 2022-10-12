@@ -20,7 +20,7 @@ struct LidarSweep final : public LidarScan {
   int Add(const LidarScan& scan);
 
   /// @brief Interpolate pose of each column
-  void Interp(const Trajectory& traj, int gsize = 0);
+  void Interp(const Trajectory& traj, int gsize = 0, bool motion_comp = true);
 };
 
 LidarSweep MakeTestSweep(const cv::Size& size);

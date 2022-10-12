@@ -143,15 +143,15 @@ bool SweepGrid::IsCellGood(const cv::Point& px) const {
   return true;
 }
 
-void SweepGrid::Interp(const Trajectory& traj) {
+void SweepGrid::Interp(const Trajectory& traj, bool motion_comp) {
   CHECK_EQ(tfs.size() + 1, traj.size());
 
   for (int gc = 0; gc < tfs.size(); ++gc) {
     // Note that the starting point of traj is where curr ends, so we need to
     // offset by curr.end to find the corresponding traj segment
     const int tc = WrapCols(gc - curr.end, cols());
-    const auto& st0 = traj.At(tc);
-    const auto& st1 = traj.At(tc + 1);
+    const auto& st0 = motion_comp ? traj.At(tc) : traj.At(0);
+    const auto& st1 = motion_comp ? traj.At(tc + 1) : traj.At(0);
 
     Sophus::SE3d tf_p_i;
     tf_p_i.so3() = Sophus::interpolate(st0.rot, st1.rot, 0.5);

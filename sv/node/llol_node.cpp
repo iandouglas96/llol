@@ -14,8 +14,12 @@ OdomNode::OdomNode(const ros::NodeHandle& pnh)
   sub_imu_ = pnh_.subscribe(
       "imu", 100, &OdomNode::ImuCb, this, ros::TransportHints().tcpNoDelay());
 
+  pano_frame_ = pnh_.param<std::string>("pano_frame", "pano");
+  ROS_INFO_STREAM("Pano frame: " << pano_frame_);
   odom_frame_ = pnh_.param<std::string>("odom_frame", "odom");
   ROS_INFO_STREAM("Odom frame: " << odom_frame_);
+  body_frame_ = pnh_.param<std::string>("body_frame", "body");
+  ROS_INFO_STREAM("Body frame: " << body_frame_);
 
   vis_ = pnh_.param<bool>("vis", true);
   ROS_INFO_STREAM("Visualize: " << (vis_ ? "True" : "False"));
@@ -28,6 +32,9 @@ OdomNode::OdomNode(const ros::NodeHandle& pnh)
 
   rigid_ = pnh_.param<bool>("rigid", true);
   ROS_WARN_STREAM("GICP: " << (rigid_ ? "Rigid" : "Linear"));
+
+  motion_comp_ = pnh_.param<bool>("motion_comp", true);
+  ROS_WARN_STREAM("Motion comp: " << (motion_comp_ ? "True" : "False"));
 
   path_dist_ = pnh_.param<double>("path_dist", 0.01);
 
@@ -284,10 +291,10 @@ void OdomNode::PostProcess() {
   // 7. Update sweep transforms for undistortion
   {
     auto _ = tm_.Scoped("7.Sweep.Interp");
-    sweep_.Interp(traj_, tbb_);
+    sweep_.Interp(traj_, tbb_, motion_comp_);
   }
 
-  grid_.Interp(traj_);
+  grid_.Interp(traj_, motion_comp_);
 
   if (vis_) {
     Imshow("sweep",
